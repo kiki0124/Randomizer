@@ -1,0 +1,8 @@
+{
+    "Token": "Replace this with your bot token.",
+    "Items": ["Christmas", "Snow", "Santa"],
+    "Prefixes": ["cb!", "_"],
+    "Hours": 0,
+    "Minutes": 0,
+    "Seconds": 0
+}
