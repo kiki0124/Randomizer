@@ -4,5 +4,6 @@
     "Prefixes": ["cb!", "_"],
     "Hours": 0,
     "Minutes": 0,
-    "Seconds": 0
+    "Seconds": 0,
+    "Channel_ID": 123456789
 }

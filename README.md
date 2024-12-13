@@ -12,5 +12,6 @@
     - `Hours`- The of hours between each Guess message being sent.
     - `Minutes`- The delay of minutes between each Guess message being sent.
     - `Seconds`- The delay of seconds between each Guess message being sent.
+    - `Channel_ID`- The ID of the channel where the Guess message should be sent. If you do not know how to get a channel's ID please take a look at [this tutorial](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID) 
 2) Run [functions.py](/functions.py)- `python3 functions.py`
 3) Start the app by running [main.py](/main.py)- `python3 main.py` A line saying that the app is online along with its name should be displayed in the console.
