@@ -51,6 +51,8 @@ class winter_bot(commands.Cog):
             raise ValueError("Invalid Channel_ID in config.json\nPlease update it immediately to a valid one and restart the app!")
 
     @commands.hybrid_command(name="get-user-item-count", with_app_command=True, description="Get the amount of an item that a specific user has")
+    @commands.guild_only()
+    @app_commands.guild_only()
     @app_commands.describe(user="What user?", item="What item?")
     async def get_user_item_count(self, interaction: discord.Interaction, item: str, user: discord.User = None):
         await interaction.response.defer(ephemeral=True)
@@ -60,6 +62,16 @@ class winter_bot(commands.Cog):
             await interaction.followup.send(content=f"{user.mention} has `{count}` of `{item}`!")
         else:
             await interaction.followup.send(content=f"`{item}` is not a valid item...\nPlease try again later", ephemeral=True)
+
+    @commands.hybrid_command(name="remove-user-item", with_app_command=True, description="Remove x amount of specified item from specified user")
+    @app_commands.guild_only()
+    @commands.guild_only()
+    @app_commands.describe(user="What user?", item="What item?", amount="How many of the item? Defaults to 1")
+    async def remove_user_item(self, ctx: commands.Context, user: discord.Member, item: str, amount: int = 1):
+        if ctx.channel.permissions_for(ctx.author).administrator or ctx.channel.permissions_for(ctx.author).manage_guild:
+            pass
+        else:
+            raise commands.MissingPermissions(missing_permissions=["Administrator", "Manage Guild"])
 
 async def setup(client: commands.Bot):
     await client.add_cog(winter_bot(client))
