@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands, tasks
-from functions import get_config_data
-from discord import ui
+from functions import get_config_data, add_user_item, get_user_item_count
+from discord import ui, app_commands
 import random
 
 class guess_modal(ui.Modal):
@@ -11,6 +11,7 @@ class guess_modal(ui.Modal):
     guess = ui.TextInput(label="What is your guess?", style=discord.TextStyle.short, custom_id="Guess_modal_guess_input", required=True)
     async def on_submit(self, interaction: discord.Interaction):
         if self.guess.value.lower() == self.answer.lower() and interaction.message.components[0]:
+            await add_user_item(user_id=interaction.user.id, item=self.answer)
             await interaction.message.edit(content=f"{interaction.user.mention} Got it right!\nIt was `{self.answer}`", view=None)
             await interaction.response.send_message(content="Nice, you got it!", ephemeral=True)
         else:
@@ -48,6 +49,17 @@ class winter_bot(commands.Cog):
         else:
             await self.send_error_to_owner("You have inputted an invalid Channel_ID in `config.json`!\nPlease change it and restart the app.")
             raise ValueError("Invalid Channel_ID in config.json\nPlease update it immediately to a valid one and restart the app!")
+
+    @commands.hybrid_command(name="get-user-item-count", with_app_command=True, description="Get the amount of an item that a specific user has")
+    @app_commands.describe(user="What user?", item="What item?")
+    async def get_user_item_count(self, interaction: discord.Interaction, item: str, user: discord.User = None):
+        await interaction.response.defer(ephemeral=True)
+        if item in await get_config_data["Items"]:
+            if user == None: user = interaction.user
+            count = await get_user_item_count(user_id=user.id, item=item)
+            await interaction.followup.send(content=f"{user.mention} has `{count}` of `{item}`!")
+        else:
+            await interaction.followup.send(content=f"`{item}` is not a valid item...\nPlease try again later", ephemeral=True)
 
 async def setup(client: commands.Bot):
     await client.add_cog(winter_bot(client))
