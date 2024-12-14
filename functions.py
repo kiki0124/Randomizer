@@ -23,7 +23,7 @@ async def get_user_item_count(user_id: int, item: str) -> int:
         async with conn.cursor() as cu:
             await cu.execute(f"SELECT {item} FROM items WHERE user_id={user_id}")
             result = await cu.fetchone()
-            return result[0]
+            return result[0] if result else 0
 
 async def get_config_data():
     with open('data.json', 'r') as file:
