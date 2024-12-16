@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-from functions import get_config_data, add_user_item, get_user_item_count
+from functions import get_config_data, add_user_item, get_user_item_count, decrease_user_item_count
 from discord import ui, app_commands
 import random
 
@@ -15,7 +15,7 @@ class guess_modal(ui.Modal):
             await interaction.message.edit(content=f"{interaction.user.mention} Got it right!\nIt was `{self.answer}`", view=None)
             await interaction.response.send_message(content="Nice, you got it!", ephemeral=True)
         else:
-            await interaction.response.send_message(content="")
+            await interaction.response.send_message(content=f"You got it wrong... Try again!", ephemeral=True)
 
 class guess_button(ui.View):
     def __init__(self, answer: str):
@@ -68,8 +68,15 @@ class winter_bot(commands.Cog):
     @commands.guild_only()
     @app_commands.describe(user="What user?", item="What item?", amount="How many of the item? Defaults to 1")
     async def remove_user_item(self, ctx: commands.Context, user: discord.Member, item: str, amount: int = 1):
+        await ctx.defer(ephemeral=True)
         if ctx.channel.permissions_for(ctx.author).administrator or ctx.channel.permissions_for(ctx.author).manage_guild:
-            pass
+            if item in await get_config_data["Items"]:
+                if amount >= get_user_item_count(user.id, item):
+                    await decrease_user_item_count(user.id, item, amount)
+                else:
+                    await ctx.reply(content=f"{user.name} doesn't have `{amount}` of {item} and they cannot have a negative of any item...", ephemeral=True)
+            else:
+                await ctx.reply(content=f"`{item}` is not a valid item...", ephemeral=True)
         else:
             raise commands.MissingPermissions(missing_permissions=["Administrator", "Manage Guild"])
 

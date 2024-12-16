@@ -25,6 +25,12 @@ async def get_user_item_count(user_id: int, item: str) -> int:
             result = await cu.fetchone()
             return result[0] if result else 0
 
+async def decrease_user_item_count(user_id: int, item: str, count: int = 1) -> None:
+    async with sql.connect("data.db") as conn:
+        async with conn.cursor() as cu:
+            await cu.execute(f'UPDATE items SET {item}={item}-{count} WHERE user_id={user_id}')
+            await conn.commit()
+
 async def get_config_data():
     with open('data.json', 'r') as file:
         return json.load(file)
