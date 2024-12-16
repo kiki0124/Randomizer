@@ -1,24 +1,23 @@
 import discord
 from discord.ext import commands
 import os
-import json
+from functions import get_config_data
 
-with open("config.json", 'r') as file:
-    data = json.load(file)
+config = get_config_data()
 
-client = commands.Bot(command_prefix=data["Prefixes"], help_command=None, intents=discord.Intents.all())
+client = commands.Bot(command_prefix=config["Prefixes"], help_command=None, intents=discord.Intents.all())
 
-@client.event("on_ready")
+@client.event
 async def on_ready():
     print(f"Bot is ready.\nLogged in as {client.user.name} | {client.user.id}")
 
-@client.event("setup_hook")
-async def load_extensions():
+@client.event
+async def setup_hook():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):
+            print(f"cogs.{filename[:-3]}")
             await client.load_extension(f"cogs.{filename[:-3]}")
             print(f"Loaded extension: {filename}")
         else:
             print(f"Skipped loading extension: {filename}")
-
-client.run(token=data["Token"])
+client.run(token=config["Token"])

@@ -22,33 +22,42 @@ class guess_button(ui.View):
         self.answer = answer
         super().__init__(timeout=180)
     
-    @ui.Button(label="Click to guess!", style=discord.ButtonStyle.blurple, custom_id="guess_button")
-    async def on_guess_button_click(self, interaction: discord.Interaction):
+    @ui.button(label="Click to guess!", style=discord.ButtonStyle.blurple, custom_id="guess_button")
+    async def on_guess_button_click(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.send_modal(guess_modal(answer=self.answer))
 
 class winter_bot(commands.Cog):
     def __init__(self, client: commands.Bot):
         self.client = client
+        self.send_guess_message.start()
+
+    def cog_unload(self):
+        self.send_guess_message.cancel()
 
     async def send_error_to_owner(self, msg: str):
         owner = self.client.get_user(self.client.owner_id)
         await owner.send(content=msg)
 
-    @tasks.loop(seconds=get_config_data()["Seconds"], minutes=get_config_data()["Minutes"], hours=get_config_data()["Hours"])
+    config = get_config_data()
+    @tasks.loop(seconds=config["Seconds"], minutes=config["Minutes"], hours=config["Hours"])
     async def send_guess_message(self):
-        config = await get_config_data()
+        config = get_config_data()
         channel = self.client.get_channel(config["Channel_ID"])
         if channel:
             items = config["Items"]
-            item = random.choices(items)
+            item = random.choices(items)[0]
             try:
                 await channel.send(content=f"A new item has spawned! Click the button below to guess it!", view=guess_button(answer=item))
             except discord.HTTPException as e:
-                await self.send_error_to_owner(msg=f"Couldn't send a message in <#{config["Channel_ID"]}>\n`{e.code}`, `{e.status}`, `{e.text}`, `{e.response}`")
+                await self.send_error_to_owner(msg=f"Couldn't send a message in specified channel\n`{e.code}`, `{e.status}`, `{e.text}`, `{e.response}`")
                 raise e
         else:
             await self.send_error_to_owner("You have inputted an invalid Channel_ID in `config.json`!\nPlease change it and restart the app.")
             raise ValueError("Invalid Channel_ID in config.json\nPlease update it immediately to a valid one and restart the app!")
+
+    @send_guess_message.before_loop
+    async def sgm_bl(self):
+        await self.client.wait_until_ready()
 
     @commands.hybrid_command(name="get-user-item-count", with_app_command=True, description="Get the amount of an item that a specific user has")
     @commands.guild_only()
@@ -56,7 +65,7 @@ class winter_bot(commands.Cog):
     @app_commands.describe(user="What user?", item="What item?")
     async def get_user_item_count(self, interaction: discord.Interaction, item: str, user: discord.User = None):
         await interaction.response.defer(ephemeral=True)
-        if item in await get_config_data["Items"]:
+        if item in get_config_data["Items"]:
             if user == None: user = interaction.user
             count = await get_user_item_count(user_id=user.id, item=item)
             await interaction.followup.send(content=f"{user.mention} has `{count}` of `{item}`!")
@@ -70,7 +79,7 @@ class winter_bot(commands.Cog):
     async def remove_user_item(self, ctx: commands.Context, user: discord.Member, item: str, amount: int = 1):
         await ctx.defer(ephemeral=True)
         if ctx.channel.permissions_for(ctx.author).administrator or ctx.channel.permissions_for(ctx.author).manage_guild:
-            if item in await get_config_data["Items"]:
+            if item in get_config_data["Items"]:
                 if amount >= get_user_item_count(user.id, item):
                     await decrease_user_item_count(user.id, item, amount)
                 else:

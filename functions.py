@@ -2,7 +2,6 @@ import aiosqlite as sql
 import json
 import asyncio
 
-
 async def main():
     with open("config.json", 'r') as file:
         data = json.load(file)
@@ -31,6 +30,8 @@ async def decrease_user_item_count(user_id: int, item: str, count: int = 1) -> N
             await cu.execute(f'UPDATE items SET {item}={item}-{count} WHERE user_id={user_id}')
             await conn.commit()
 
-async def get_config_data():
-    with open('data.json', 'r') as file:
+def get_config_data():
+    with open('config.json', 'r') as file:
         return json.load(file)
+
+asyncio.run(main())

@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
+import os
 
 class bot(commands.Cog):
     def __init__(self, client):
@@ -24,6 +25,12 @@ class bot(commands.Cog):
                 await ctx.reply(content=f"You have parsed a bad argument... Please try again later.", mention_author=False)
             case _:
                 raise error
+
+    @commands.command()
+    async def restart(self, ctx: commands.Context):
+        extensions = [file for file in os.listdir("./cogs") if file.endswith(".py")]
+        await ctx.reply(f"Reloading {len(extensions)} files...")
+        for extension in extensions: await self.client.reload_extension(f"cogs.{extension[:-3]}")
 
 async def setup(client):
     await client.add_cog(bot(client))
